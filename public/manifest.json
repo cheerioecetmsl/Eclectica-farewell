@@ -1,0 +1,9 @@
+{
+  "name": "Eclectica Farewell 2026",
+  "short_name": "Farewell '26",
+  "description": "Preserve the legacy of the Batch of 2026.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000000"
+}

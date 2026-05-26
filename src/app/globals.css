@@ -1,0 +1,199 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg: #fdfbf7;
+  --color-fg: #2d2d2d;
+  --color-muted: #e5e0d8;
+  --color-accent: #ff4d4d;
+  --color-secondary: #2d5da1;
+  --color-yellow-postit: #fff9c4;
+
+  --font-kalam: var(--font-kalam), "Comic Sans MS", cursive;
+  --font-patrick: var(--font-patrick), "Comic Sans MS", cursive;
+  --font-circuit: var(--font-circuit), "Share Tech Mono", monospace;
+
+  /* We will use arbitrary classes for shadows and borders since tailwind v4 handles arbitrary values well */
+}
+
+/* ========================================= */
+/* --- HAND-DRAWN THEME SCOPE ---            */
+/* ========================================= */
+
+.theme-hand-drawn {
+  background-color: var(--color-bg);
+  color: var(--color-fg);
+  font-family: var(--font-patrick);
+  /* Paper Texture */
+  background-image: radial-gradient(var(--color-muted) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+h1, h2, h3, h4, .font-kalam {
+  font-family: var(--font-kalam);
+}
+
+.font-patrick {
+  font-family: var(--font-patrick);
+}
+
+.font-circuit {
+  font-family: var(--font-circuit) !important;
+  letter-spacing: 0.08em;
+}
+
+/* Hand-Drawn Radius Utilities */
+.radius-wobbly {
+  border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+}
+
+.radius-wobbly-md {
+  border-radius: 20px 255px 20px 255px / 255px 20px 255px 20px;
+}
+
+/* Hard Offset Shadows */
+.shadow-hard {
+  box-shadow: 4px 4px 0px 0px var(--color-fg);
+}
+
+.shadow-hard-hover:hover {
+  box-shadow: 2px 2px 0px 0px var(--color-fg);
+  transform: translate(2px, 2px);
+}
+
+.shadow-hard-active:active {
+  box-shadow: none !important;
+  transform: translate(4px, 4px) !important;
+}
+
+/* Component Classes */
+.hand-card {
+  background-color: #ffffff;
+  border: 2px solid var(--color-fg);
+  border-radius: 20px 255px 20px 255px / 255px 20px 255px 20px;
+  box-shadow: 4px 4px 0px 0px var(--color-fg);
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.hand-card-yellow {
+  background-color: var(--color-yellow-postit);
+  border: 2px solid var(--color-fg);
+  border-radius: 20px 255px 20px 255px / 255px 20px 255px 20px;
+  box-shadow: 4px 4px 0px 0px var(--color-fg);
+}
+
+.hand-button {
+  background-color: #ffffff;
+  border: 3px solid var(--color-fg);
+  color: var(--color-fg);
+  border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+  box-shadow: 4px 4px 0px 0px var(--color-fg);
+  font-family: var(--font-patrick);
+  transition: all 0.1s ease;
+  cursor: pointer;
+}
+
+.hand-button:hover {
+  background-color: var(--color-accent);
+  color: #ffffff;
+  box-shadow: 2px 2px 0px 0px var(--color-fg);
+  transform: translate(2px, 2px);
+}
+
+.hand-button:active {
+  box-shadow: none;
+  transform: translate(4px, 4px);
+}
+
+.hand-button-secondary {
+  background-color: var(--color-muted);
+}
+
+.hand-button-secondary:hover {
+  background-color: var(--color-secondary);
+  color: #ffffff;
+}
+
+.hand-input {
+  background-color: #ffffff;
+  border: 2px solid var(--color-fg);
+  border-radius: 20px 255px 20px 255px / 255px 20px 255px 20px;
+  color: var(--color-fg);
+  font-family: var(--font-patrick);
+  transition: all 0.2s ease;
+}
+
+.hand-input:focus {
+  border-color: var(--color-secondary);
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(45, 93, 161, 0.2);
+}
+
+.hand-input::placeholder {
+  color: rgba(45, 45, 45, 0.4);
+}
+
+/* Tape Decoration */
+.tape-decoration::before {
+  content: "";
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%) rotate(-2deg);
+  width: 80px;
+  height: 25px;
+  background-color: rgba(200, 200, 200, 0.5);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  z-index: 10;
+}
+
+/* Tack Decoration */
+.tack-decoration::after {
+  content: "";
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 16px;
+  height: 16px;
+  background-color: var(--color-accent);
+  border-radius: 50%;
+  border: 2px solid var(--color-fg);
+  box-shadow: 2px 2px 0 0 rgba(0,0,0,0.2);
+  z-index: 10;
+}
+
+/* Remove old global overrides that conflict */
+body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+/* For compatibility while transitioning components */
+.theme-cinematic {
+  background-color: transparent !important;
+  color: inherit !important;
+}
+
+.theme-card, .glass-card {
+  background: #ffffff !important;
+  border: 2px solid var(--color-fg) !important;
+  border-radius: 20px 255px 20px 255px / 255px 20px 255px 20px !important;
+  box-shadow: 4px 4px 0px 0px var(--color-fg) !important;
+  backdrop-filter: none !important;
+}
+
+.gold-button, .theme-cinematic-btn-primary {
+  background: var(--color-accent) !important;
+  border: 3px solid var(--color-fg) !important;
+  color: #fff !important;
+  border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px !important;
+  box-shadow: 4px 4px 0px 0px var(--color-fg) !important;
+}
+
+.theme-cinematic-input {
+  background: #fff !important;
+  border: 2px solid var(--color-fg) !important;
+  border-radius: 20px 255px 20px 255px / 255px 20px 255px 20px !important;
+  color: var(--color-fg) !important;
+}
