@@ -389,101 +389,97 @@ export default function OnboardingPage() {
 
             <div className="grid grid-cols-1 gap-10 text-left">
 
-
-
-              {isFacultyOrSenior && (
-                <div className="space-y-8 animate-in slide-in-from-top-4">
-                  {formData.year === "4th Year" && (
-                    <div className="space-y-4">
-                      <label className="text-sm font-patrick font-bold uppercase tracking-widest text-[#2d2d2d] flex items-center gap-2">
-                        <BookOpen size={18} strokeWidth={2.5} /> Write something fun about yourself
-                      </label>
-                      <input 
-                        type="text"
-                        placeholder="e.g. Code by day, gamer by night"
-                        value={formData.role}
-                        onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                        className="w-full hand-input p-4 text-xl font-patrick text-[#2d2d2d]"
-                      />
-                    </div>
-                  )}
-                  {formData.year === "Faculty" && (
-                    <div className="space-y-4">
-                      <label className="text-sm font-patrick font-bold uppercase tracking-widest text-[#2d2d2d]">Honorific Station</label>
-                      <div className="flex gap-4">
-                        {["Sir", "Madam"].map((g) => (
-                          <button
-                            key={g}
-                            onClick={() => setFormData({ ...formData, gender: g as "Sir" | "Madam" })}
-                            className={`flex-1 p-4 border-[3px] border-[#2d2d2d] rounded-[var(--radius-wobbly)] transition-all font-bold uppercase tracking-widest text-lg font-patrick flex items-center justify-center gap-3 shadow-[2px_2px_0_0_#2d2d2d] ${
-                              formData.gender === g ? "bg-[#fff9c4] scale-105" : "bg-white text-[#2d2d2d]/70"
-                            }`}
-                          >
-                            <User size={20} strokeWidth={2.5} /> {g}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+              <div className="space-y-8 animate-in slide-in-from-top-4">
+                {formData.year !== "Faculty" && (
                   <div className="space-y-4">
                     <label className="text-sm font-patrick font-bold uppercase tracking-widest text-[#2d2d2d] flex items-center gap-2">
-                      <FileText size={18} strokeWidth={2.5} /> Brief Narrative
+                      <BookOpen size={18} strokeWidth={2.5} /> Write something fun about yourself
                     </label>
-                    <textarea 
-                      rows={4}
-                      placeholder="A brief legacy note for the archives..."
-                      value={formData.narrative}
-                      onChange={(e) => setFormData({ ...formData, narrative: e.target.value })}
-                      className="w-full hand-input p-4 text-xl font-patrick text-[#2d2d2d] resize-none"
+                    <input 
+                      type="text"
+                      placeholder="e.g. Code by day, gamer by night"
+                      value={formData.role}
+                      onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                      className="w-full hand-input p-4 text-xl font-patrick text-[#2d2d2d]"
                     />
                   </div>
-                  
-                  {/* Dynamic Tags */}
+                )}
+                {formData.year === "Faculty" && (
                   <div className="space-y-4">
-                    <div className="flex justify-between items-end">
-                      <label className="text-sm font-patrick font-bold uppercase tracking-widest text-[#2d2d2d] flex items-center gap-2">
-                        <Hash size={18} strokeWidth={2.5} /> Identity Tags (Max 8)
-                      </label>
-                      <span className="text-[10px] font-bold text-[#2d2d2d]/50 uppercase tracking-widest">{formData.tags.length}/8 Tags</span>
+                    <label className="text-sm font-patrick font-bold uppercase tracking-widest text-[#2d2d2d]">Honorific Station</label>
+                    <div className="flex gap-4">
+                      {["Sir", "Madam"].map((g) => (
+                        <button
+                          key={g}
+                          onClick={() => setFormData({ ...formData, gender: g as "Sir" | "Madam" })}
+                          className={`flex-1 p-4 border-[3px] border-[#2d2d2d] rounded-[var(--radius-wobbly)] transition-all font-bold uppercase tracking-widest text-lg font-patrick flex items-center justify-center gap-3 shadow-[2px_2px_0_0_#2d2d2d] ${
+                            formData.gender === g ? "bg-[#fff9c4] scale-105" : "bg-white text-[#2d2d2d]/70"
+                          }`}
+                        >
+                          <User size={20} strokeWidth={2.5} /> {g}
+                        </button>
+                      ))}
                     </div>
-                    <div className="flex gap-2">
-                      <input 
-                        type="text"
-                        placeholder="Favorite anime, food, novel..."
-                        value={tagInput}
-                        onChange={(e) => setTagInput(e.target.value)}
-                        onKeyDown={handleAddTag}
-                        disabled={formData.tags.length >= 8}
-                        className="flex-1 hand-input p-4 text-lg font-patrick text-[#2d2d2d] disabled:opacity-50 disabled:cursor-not-allowed"
-                      />
-                      <button 
-                        onClick={handleAddTag}
-                        type="button"
-                        disabled={!tagInput.trim() || formData.tags.length >= 8}
-                        className="hand-card-yellow px-6 py-2 border-[3px] border-[#2d2d2d] shadow-[4px_4px_0_0_#2d2d2d] font-bold uppercase tracking-widest font-patrick disabled:opacity-50 disabled:cursor-not-allowed hover:-translate-y-1 transition-transform rotate-1"
-                      >
-                        Add
-                      </button>
-                    </div>
-                    {formData.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-2 pt-2">
-                        {formData.tags.map((tag) => (
-                          <div key={tag} className="flex items-center gap-2 px-3 py-1.5 bg-[#e8f4f8] border-[2px] border-[#2d2d2d] rounded-full shadow-[2px_2px_0_0_#2d2d2d] group">
-                            <span className="text-sm font-bold font-patrick text-[#2d2d2d]">#{tag}</span>
-                            <button 
-                              onClick={() => removeTag(tag)}
-                              className="text-[#2d2d2d]/40 hover:text-[#ff4d4d] transition-colors"
-                            >
-                              <X size={14} strokeWidth={3} />
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
                   </div>
-
+                )}
+                <div className="space-y-4">
+                  <label className="text-sm font-patrick font-bold uppercase tracking-widest text-[#2d2d2d] flex items-center gap-2">
+                    <FileText size={18} strokeWidth={2.5} /> Brief Narrative
+                  </label>
+                  <textarea 
+                    rows={4}
+                    placeholder="A brief legacy note for the archives..."
+                    value={formData.narrative}
+                    onChange={(e) => setFormData({ ...formData, narrative: e.target.value })}
+                    className="w-full hand-input p-4 text-xl font-patrick text-[#2d2d2d] resize-none"
+                  />
                 </div>
-              )}
+                
+                {/* Dynamic Tags */}
+                <div className="space-y-4">
+                  <div className="flex justify-between items-end">
+                    <label className="text-sm font-patrick font-bold uppercase tracking-widest text-[#2d2d2d] flex items-center gap-2">
+                      <Hash size={18} strokeWidth={2.5} /> Identity Tags (Max 8)
+                    </label>
+                    <span className="text-[10px] font-bold text-[#2d2d2d]/50 uppercase tracking-widest">{formData.tags.length}/8 Tags</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <input 
+                      type="text"
+                      placeholder="Favorite anime, food, novel..."
+                      value={tagInput}
+                      onChange={(e) => setTagInput(e.target.value)}
+                      onKeyDown={handleAddTag}
+                      disabled={formData.tags.length >= 8}
+                      className="flex-1 hand-input p-4 text-lg font-patrick text-[#2d2d2d] disabled:opacity-50 disabled:cursor-not-allowed"
+                    />
+                    <button 
+                      onClick={handleAddTag}
+                      type="button"
+                      disabled={!tagInput.trim() || formData.tags.length >= 8}
+                      className="hand-card-yellow px-6 py-2 border-[3px] border-[#2d2d2d] shadow-[4px_4px_0_0_#2d2d2d] font-bold uppercase tracking-widest font-patrick disabled:opacity-50 disabled:cursor-not-allowed hover:-translate-y-1 transition-transform rotate-1"
+                    >
+                      Add
+                    </button>
+                  </div>
+                  {formData.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-2 pt-2">
+                      {formData.tags.map((tag) => (
+                        <div key={tag} className="flex items-center gap-2 px-3 py-1.5 bg-[#e8f4f8] border-[2px] border-[#2d2d2d] rounded-full shadow-[2px_2px_0_0_#2d2d2d] group">
+                          <span className="text-sm font-bold font-patrick text-[#2d2d2d]">#{tag}</span>
+                          <button 
+                            onClick={() => removeTag(tag)}
+                            className="text-[#2d2d2d]/40 hover:text-[#ff4d4d] transition-colors"
+                          >
+                            <X size={14} strokeWidth={3} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+              </div>
             </div>
 
             <button 
