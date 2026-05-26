@@ -118,10 +118,9 @@ export default function ImageUpload() {
     }, "image/jpeg", 0.92);
   };
 
-  const [uploadType, setUploadType] = useState<"memory" | "entry">("memory");
-  const [usedEntries, setUsedEntries] = useState<number>(0);
-  const [entryLimit, setEntryLimit] = useState<number>(5);
+  const uploadType = "memory";
   const [userYear, setUserYear] = useState<string>("");
+  const [userCategory, setUserCategory] = useState<string>("");
 
   const fetchUser = async (uid: string) => {
     try {
@@ -130,17 +129,9 @@ export default function ImageUpload() {
       if (snap.exists()) {
         const data = snap.data();
         setStrikes(data.strikes || 0);
-        setEntryLimit(data.entryLimit || 5);
         setUserYear(data.year || "");
+        setUserCategory(data.category || "");
       }
-
-      const q = query(
-        collection(db, "archives"), 
-        where("userId", "==", uid), 
-        where("isEntry", "==", true)
-      );
-      const entriesSnap = await getDocs(q);
-      setUsedEntries(entriesSnap.size);
     } catch (err) {
       console.error("Failed to fetch user data", err);
     } finally {
@@ -151,17 +142,6 @@ export default function ImageUpload() {
   const uploadBatchAction = async () => {
     if (!files.length || !auth.currentUser) return;
     
-    if (uploadType === "entry") {
-      if (files.length > 1) {
-        alert("You can only upload one entry at a time.");
-        return;
-      }
-      if (usedEntries >= entryLimit) {
-        alert(`You have already used your ${entryLimit} entries.`);
-        return;
-      }
-    }
-
     setUploading(true);
     setUploadedCount(0);
     try {
@@ -176,17 +156,13 @@ export default function ImageUpload() {
           userId: auth.currentUser!.uid,
           userName: auth.currentUser!.displayName,
           createdAt: new Date().toISOString(),
-          tag: uploadType === "entry" ? "Chase Colours Entry" : "General",
-          isEntry: uploadType === "entry",
-          status: uploadType === "entry" ? "pending" : "approved",
-          isPublic: uploadType === "memory",
+          tag: "General",
+          isEntry: false,
+          status: "approved",
+          isPublic: true,
         });
         
         setUploadedCount(i + 1);
-      }
-
-      if (uploadType === "entry") {
-        setUsedEntries(prev => prev + files.length);
       }
 
       await updateDoc(doc(db, "users", auth.currentUser.uid), {
@@ -212,6 +188,8 @@ export default function ImageUpload() {
 
   const isBanned = strikes >= 3;
   const showStrikeWarning = (strikes === 1 || strikes === 2) && !strikeWarningDismissed;
+
+
 
   return (
     <div className="max-w-2xl mx-auto py-8">
@@ -280,27 +258,7 @@ export default function ImageUpload() {
             </div>
             <h1 className="text-5xl font-bold text-[#2d2d2d] font-kalam">Seal Memories.</h1>
             <p className="font-patrick text-xl text-[#2d2d2d]/70">Upload frames to earn +10 Legacy XP per image.</p>
-            
-            <div className="flex flex-col items-center gap-2 mt-4">
-              {(userYear === "4th Year" || userYear?.toLowerCase() === "4th year") && (
-                <>
-                  <label className="font-bold font-kalam text-lg text-[#2d2d2d]">Upload Destination:</label>
-                  <select 
-                    value={uploadType} 
-                    onChange={(e) => setUploadType(e.target.value as "memory" | "entry")}
-                    className="px-4 py-2 rounded-[var(--radius-wobbly)] border-[3px] border-[#2d2d2d] font-patrick font-bold text-lg shadow-[4px_4px_0_0_#2d2d2d] focus:outline-none focus:ring-2 ring-[#ffca28]"
-                  >
-                    <option value="memory">Scrapbook Memory (Unlimited)</option>
-                    <option value="entry">Chase Colours Entry ({entryLimit - usedEntries} left)</option>
-                  </select>
-                  {uploadType === "entry" && (
-                    <p className="text-sm font-patrick text-[#ff4d4d] font-bold mt-1">
-                      Entries are pending admin approval and limited to 1 image per upload.
-                    </p>
-                  )}
-                </>
-              )}
-            </div>
+
           </div>
 
           {!success ? (

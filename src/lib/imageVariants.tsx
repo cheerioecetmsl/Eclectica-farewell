@@ -47,22 +47,19 @@ export const CheerioImage: React.FC<CheerioImageProps> = ({
   const urls = storage.getAssetSources(id);
 
   return (
-    <picture className={className}>
-      <source srcSet={urls.webp} type="image/webp" />
-      <img 
-        src={urls.jpg || fallbackUrl || ""} 
-        alt={alt} 
-        className={className}
-        loading={priority ? "eager" : "lazy"}
-        crossOrigin="anonymous"
-        {...props}
-        onError={(e) => {
-          if (fallbackUrl && e.currentTarget.src !== fallbackUrl) {
-            e.currentTarget.src = fallbackUrl;
-          }
-        }}
-      />
-    </picture>
+    <img 
+      src={urls.jpg || fallbackUrl || ""} 
+      alt={alt} 
+      className={className}
+      loading={priority ? "eager" : "lazy"}
+      crossOrigin="anonymous"
+      {...props}
+      onError={(e) => {
+        if (fallbackUrl && e.currentTarget.src !== fallbackUrl) {
+          e.currentTarget.src = fallbackUrl;
+        }
+      }}
+    />
   );
 };
 

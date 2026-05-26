@@ -2,11 +2,14 @@
 
 import { useState, useEffect } from "react";
 import { auth, db } from "@/lib/firebase";
-import { collection, query, where, getDocs, doc, getDoc } from "firebase/firestore";
+import { 
+  collection, query, where, getDocs, doc, getDoc, addDoc, updateDoc, increment 
+} from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
-import { Loader2, ArrowLeft, Users, Trophy } from "lucide-react";
+import { Loader2, ArrowLeft, Users, Trophy, UploadCloud } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { uploadProcessedImage } from "@/lib/uploadHelper";
 
 interface Teammate {
   uid: string;
@@ -28,6 +31,48 @@ export default function ChaseColoursEvent() {
   
   const [entries, setEntries] = useState<any[]>([]);
   const [entryLimit, setEntryLimit] = useState<number>(5);
+  const [uploading, setUploading] = useState(false);
+
+  const handleUploadEntry = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !currentUser) return;
+
+    if (entries.length >= entryLimit) {
+      alert(`You have already submitted the maximum of ${entryLimit} entries.`);
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const { baseId, url: uploadedUrl } = await uploadProcessedImage(file, "Cheerio/Archives/Images");
+
+      await addDoc(collection(db, "archives"), {
+        baseId,
+        url: uploadedUrl,
+        type: "image",
+        userId: currentUser.uid,
+        userName: userData?.name || currentUser.displayName || "Unknown",
+        createdAt: new Date().toISOString(),
+        tag: "Chase Colours Entry",
+        isEntry: true,
+        status: "pending",
+        isPublic: false,
+      });
+
+      await updateDoc(doc(db, "users", currentUser.uid), {
+        xp: increment(10),
+        photoCount: increment(1),
+      });
+
+      alert("Competition entry successfully submitted and sealed! Pending admin approval.");
+      fetchEntries(currentUser.uid);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to upload your entry. Please try again.");
+    } finally {
+      setUploading(false);
+    }
+  };
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -39,7 +84,12 @@ export default function ChaseColoursEvent() {
           setUserData(data);
           setEntryLimit(data.entryLimit || 5);
           
-          if (data.year !== "4th Year") {
+          const isUserLegend = 
+            data.year?.toLowerCase().includes("4th year") || 
+            data.year?.toLowerCase().includes("legend") || 
+            data.category?.toLowerCase().includes("legend");
+
+          if (!isUserLegend) {
             setIsRejected(true);
             setLoading(false);
             return;
@@ -100,15 +150,27 @@ export default function ChaseColoursEvent() {
   }
 
   // --- REJECTION MODAL ---
+  const getRejectionMessage = () => {
+    if (!userData) return "You are not authorized.";
+    if (userData.year === "Faculty") {
+      return "Faculty members are not allowed in the grand student auction! 🎓";
+    }
+    let x = 1;
+    if (userData.year === "1st Year") x = 3;
+    else if (userData.year === "2nd Year") x = 2;
+    else if (userData.year === "3rd Year") x = 1;
+    
+    return `Ahem... You are ${x} ${x === 1 ? 'year' : 'years'} early, kiddo! 😜\n\nThe grand auction is for 4th Years only. Your time will come!`;
+  };
+
   if (isRejected) {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#fdfbf7]/80 backdrop-blur-md">
         <div className="hand-card p-10 max-w-md w-full text-center bg-white border-[3px] border-[#2d2d2d] shadow-hard animate-in fade-in zoom-in duration-300">
           <div className="tack-decoration" />
           <h2 className="text-4xl font-bold font-kalam text-red-500 mb-6 -rotate-2">Hold up!</h2>
-          <p className="text-xl font-patrick text-[#2d2d2d] mb-8 leading-relaxed">
-            Ahem... You're 1 year early, kiddo! 😜<br/><br/>
-            The grand auction is for 4th Years only.
+          <p className="text-xl font-patrick text-[#2d2d2d] mb-8 leading-relaxed whitespace-pre-line">
+            {getRejectionMessage()}
           </p>
           <button 
             onClick={() => router.push("/dashboard/events")}
@@ -230,21 +292,60 @@ export default function ChaseColoursEvent() {
         {/* Your Entries Grid */}
         <div className="space-y-6 pt-8 border-t-[3px] border-[#2d2d2d]/10">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <h3 className="text-2xl font-bold font-kalam text-[#2d2d2d] flex items-center gap-3">
-              <Trophy className="text-[#2d2d2d]" /> 
-              Your Competition Entries
-            </h3>
-            <div className="bg-white border-[2px] border-[#2d2d2d] px-4 py-2 rounded-full font-bold font-patrick text-sm shadow-[2px_2px_0_0_#2d2d2d]">
-              {entries.length} / {entryLimit} Entries Used
+            <div className="space-y-1">
+              <h3 className="text-2xl font-bold font-kalam text-[#2d2d2d] flex items-center gap-3">
+                <Trophy className="text-[#2d2d2d]" /> 
+                Your Competition Entries
+              </h3>
+              <p className="text-sm font-patrick text-[#2d2d2d]/60">
+                Upload frames matching the active auction colour coordinates to qualify!
+              </p>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="bg-white border-[2px] border-[#2d2d2d] px-4 py-2 rounded-full font-bold font-patrick text-sm shadow-[2px_2px_0_0_#2d2d2d]">
+                {entries.length} / {entryLimit} Entries Used
+              </div>
+              
+              {entries.length < entryLimit && (
+                <div>
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    className="hidden" 
+                    id="entry-upload-file" 
+                    disabled={uploading}
+                    onChange={handleUploadEntry}
+                  />
+                  <label 
+                    htmlFor="entry-upload-file" 
+                    className={`inline-flex items-center gap-2 px-6 py-2.5 bg-[#ffca28] hover:bg-[#ffe066] border-[2px] border-[#2d2d2d] rounded-full font-bold font-patrick shadow-[2px_2px_0_0_#2d2d2d] hover:-translate-y-1 transition-all active:translate-y-1 active:shadow-none cursor-pointer uppercase ${uploading ? 'opacity-50 pointer-events-none' : ''}`}
+                  >
+                    {uploading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" /> Uploading...
+                      </>
+                    ) : (
+                      <>
+                        <UploadCloud className="w-4 h-4" /> Upload Entry
+                      </>
+                    )}
+                  </label>
+                </div>
+              )}
             </div>
           </div>
           
           {entries.length === 0 ? (
-            <div className="hand-card bg-white p-8 border-[3px] border-[#2d2d2d] shadow-hard text-center">
-              <p className="text-lg font-patrick text-[#2d2d2d]/70">You haven't submitted any entries yet.</p>
-              <Link href="/dashboard/upload/image" className="inline-block mt-4 px-6 py-2 bg-[#ffca28] hover:bg-[#ffe066] border-[2px] border-[#2d2d2d] rounded-full font-bold font-patrick shadow-[2px_2px_0_0_#2d2d2d] hover:-translate-y-1 transition-transform uppercase">
-                Submit an Entry
-              </Link>
+            <div className="hand-card bg-white p-12 border-[3px] border-[#2d2d2d] shadow-hard text-center flex flex-col items-center justify-center space-y-4">
+              <UploadCloud className="w-16 h-16 text-[#2d2d2d]/30" strokeWidth={1.5} />
+              <p className="text-xl font-patrick text-[#2d2d2d]/70">You haven't submitted any competition entries yet.</p>
+              
+              <label 
+                htmlFor="entry-upload-file" 
+                className="inline-flex items-center gap-2 px-8 py-3 bg-[#ffca28] hover:bg-[#ffe066] border-[3px] border-[#2d2d2d] rounded-full font-bold font-patrick text-lg shadow-[4px_4px_0_0_#2d2d2d] hover:-translate-y-1 transition-all active:translate-y-1 active:shadow-none cursor-pointer uppercase"
+              >
+                Upload Your First Entry
+              </label>
             </div>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
@@ -264,6 +365,23 @@ export default function ChaseColoursEvent() {
                   </div>
                 );
               })}
+              
+              {entries.length < entryLimit && !uploading && (
+                <label 
+                  htmlFor="entry-upload-file" 
+                  className="relative aspect-square rounded-[var(--radius-wobbly)] border-[3px] border-dashed border-[#2d2d2d]/30 bg-white/50 hover:bg-white hover:border-[#2d2d2d]/60 transition-all flex flex-col items-center justify-center gap-3 cursor-pointer group shadow-sm hover:shadow-[4px_4px_0_0_#2d2d2d] duration-200"
+                >
+                  <UploadCloud className="w-10 h-10 text-[#2d2d2d]/30 group-hover:text-[#2d2d2d]/60 transition-colors" />
+                  <span className="font-patrick font-bold text-sm text-[#2d2d2d]/40 group-hover:text-[#2d2d2d]/70 transition-colors uppercase">Add Another Entry</span>
+                </label>
+              )}
+
+              {uploading && (
+                <div className="relative aspect-square rounded-[var(--radius-wobbly)] border-[3px] border-[#2d2d2d] bg-white flex flex-col items-center justify-center gap-3 shadow-[4px_4px_0_0_#2d2d2d]">
+                  <Loader2 className="w-10 h-10 text-[#2d2d2d] animate-spin" />
+                  <span className="font-patrick font-bold text-sm text-[#2d2d2d] animate-pulse">Uploading...</span>
+                </div>
+              )}
             </div>
           )}
         </div>

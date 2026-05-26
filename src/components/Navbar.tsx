@@ -96,19 +96,6 @@ export const Navbar = () => {
       style={!isHome ? { backgroundColor: 'var(--color-brown-primary)', borderBottom: '1px solid var(--color-gold-soft)' } : {}}
     >
       <Link href="/" prefetch={false} className="flex items-center gap-4 group">
-        {/* Navbar Logo Landing Zone */}
-        {isHome ? (
-          <div className="w-10 md:w-16 h-8 md:h-12 flex-shrink-0" /> // Reserved space for gliding logo
-        ) : (
-          <img 
-            src="/assets/cheerio logo.png" 
-            alt="Cheerio Logo" 
-            className="h-8 md:h-12 w-auto object-contain"
-            style={{ 
-              filter: 'sepia(1) hue-rotate(330deg) saturate(2)',
-            }} 
-          />
-        )}
         <span 
           className={`text-xl md:text-2xl font-bold tracking-widest pl-2 transition-all ${isHome ? 'font-kalam text-[#2d2d2d]' : 'serif'}`}
           style={!isHome ? { color: 'var(--color-gold-primary)' } : {}}

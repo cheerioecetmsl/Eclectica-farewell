@@ -38,7 +38,7 @@ export default function OnboardingPage() {
   const [formData, setFormData] = useState<OnboardingFormData>({
     name: "",
     year: "1st Year",
-    section: "A",
+    section: "",
     photoURL: "",
     photoBaseId: "",
     role: "",
@@ -342,12 +342,12 @@ export default function OnboardingPage() {
 
               {formData.year !== "Faculty" && (
                 <div className="space-y-4 animate-in slide-in-from-top-4">
-                  <label className="text-sm font-patrick font-bold uppercase tracking-widest text-[#2d2d2d]">Univ Roll No (Mandatory)</label>
+                  <label className="text-sm font-patrick font-bold uppercase tracking-widest text-[#2d2d2d]">Which wing/sub club do you belong to? (Mandatory)</label>
                   <div className="relative">
-                    <Hash size={24} strokeWidth={2.5} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#2d2d2d]/40" />
+                    <Compass size={24} strokeWidth={2.5} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#2d2d2d]/40" />
                     <input 
                       type="text"
-                      placeholder="e.g. 12345678"
+                      placeholder="Moksha, Opinionists, Content, etc"
                       value={formData.univRollNo}
                       onChange={(e) => setFormData({ ...formData, univRollNo: e.target.value })}
                       className="w-full hand-input p-4 pl-12 text-2xl font-kalam text-[#2d2d2d]"
@@ -389,24 +389,7 @@ export default function OnboardingPage() {
 
             <div className="grid grid-cols-1 gap-10 text-left">
 
-              {formData.year !== "Faculty" && (
-                <div className="space-y-4">
-                  <label className="text-sm font-patrick font-bold uppercase tracking-widest text-[#2d2d2d]">Assigned Section</label>
-                  <div className="flex gap-4">
-                    {["A", "B", "C", "D"].map(s => (
-                      <button 
-                        key={s}
-                        onClick={() => setFormData({ ...formData, section: s })}
-                        className={`flex-1 p-4 border-[3px] border-[#2d2d2d] rounded-[var(--radius-wobbly)] transition-all font-bold uppercase tracking-widest text-xl font-kalam shadow-[2px_2px_0_0_#2d2d2d] hover:-translate-y-1 hover:shadow-[4px_4px_0_0_#2d2d2d] ${
-                          formData.section === s ? "bg-[#e8f4f8] scale-105" : "bg-white text-[#2d2d2d]/70"
-                        }`}
-                      >
-                        {s}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
+
 
               {isFacultyOrSenior && (
                 <div className="space-y-8 animate-in slide-in-from-top-4">

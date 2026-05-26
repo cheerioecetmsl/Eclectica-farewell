@@ -1,11 +1,12 @@
 "use client";
 
-import { TrendingUp, Award, Zap } from "lucide-react";
+import { TrendingUp, Award, Zap, X, Megaphone } from "lucide-react";
 import { useState, useEffect } from "react";
 import { db, auth } from "@/lib/firebase";
 import { collection, query, orderBy, limit, getDocs, doc, onSnapshot } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import { calculateLevel, formatXP } from "@/lib/xp";
+import Link from "next/link";
 
 export interface HypeUpdate {
   id: string;
@@ -21,23 +22,40 @@ export interface HypeUpdate {
 export const HypeBoard = () => {
   const [updates, setUpdates] = useState<HypeUpdate[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showPopup, setShowPopup] = useState(false);
+  const [latestNotice, setLatestNotice] = useState<HypeUpdate | null>(null);
 
   useEffect(() => {
-    const fetchHype = async () => {
-      try {
-        const q = query(collection(db, "hype_board"), orderBy("createdAt", "desc"), limit(5));
-        const snapshot = await getDocs(q);
-        const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as HypeUpdate));
-        setUpdates(docs);
-      } catch (error) {
-        console.error("Error fetching hype:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+    const q = query(collection(db, "hype_board"), orderBy("createdAt", "desc"), limit(3));
+    
+    // Real-time listener for instant notifications broadcast
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as HypeUpdate));
+      setUpdates(docs);
+      setLoading(false);
 
-    fetchHype();
+      if (docs.length > 0) {
+        const latest = docs[0];
+        const lastClosed = localStorage.getItem("lastClosedNotificationId");
+        if (lastClosed !== latest.id) {
+          setLatestNotice(latest);
+          setShowPopup(true);
+        }
+      }
+    }, (error) => {
+      console.error("Error subscribing to hype board:", error);
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
   }, []);
+
+  const closePopup = () => {
+    if (latestNotice) {
+      localStorage.setItem("lastClosedNotificationId", latestNotice.id);
+    }
+    setShowPopup(false);
+  };
 
   return (
     <div className="hand-card p-8 flex flex-col bg-[#fdfbf7] relative mt-4">
@@ -79,9 +97,49 @@ export const HypeBoard = () => {
         )}
       </div>
 
-      <button className="mt-8 font-patrick font-bold text-xl uppercase tracking-widest text-[#2d2d2d] hover:text-[#ff4d4d] hover:underline decoration-wavy transition-colors underline-offset-4">
-        Archive Feed
-      </button>
+      <Link href="/dashboard/feeds" className="mt-8 font-patrick font-bold text-xl uppercase tracking-widest text-[#2d2d2d] hover:text-[#ff4d4d] hover:underline decoration-wavy transition-colors underline-offset-4 text-center block">
+        Our Feeds
+      </Link>
+
+      {/* Hand-Drawn Popup Alert Overlay */}
+      {showPopup && latestNotice && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-[#2d2d2d]/30 backdrop-blur-sm" onClick={closePopup} />
+          
+          <div className="relative hand-card bg-white p-8 max-w-md w-full text-center space-y-6 animate-in zoom-in-95 border-[3px] border-[#2d2d2d] shadow-[8px_8px_0_0_#2d2d2d] rotate-1">
+            <div className="tape-decoration" />
+            <button 
+              onClick={closePopup}
+              className="absolute top-4 right-4 text-[#2d2d2d]/50 hover:text-[#2d2d2d] transition-colors"
+            >
+              <X size={20} strokeWidth={2.5} />
+            </button>
+            
+            <div className="w-16 h-16 bg-[#ff4d4d] border-[3px] border-[#2d2d2d] rounded-full flex items-center justify-center text-white mx-auto shadow-[4px_4px_0_0_#2d2d2d] -rotate-3">
+              <Megaphone size={32} strokeWidth={2.5} className="-ml-1 rotate-12" />
+            </div>
+
+            <div className="space-y-3">
+              <div className="inline-block bg-[#ffca28]/20 border-[2px] border-[#ffca28] text-[#2d2d2d] px-3 py-1 rounded-full font-patrick font-bold text-xs uppercase">
+                {latestNotice.tag || "Broadcast Alert"}
+              </div>
+              <h2 className="text-3xl font-bold font-kalam text-[#2d2d2d] leading-none">
+                {latestNotice.title}
+              </h2>
+              <p className="font-patrick text-lg text-[#2d2d2d]/80 leading-relaxed max-h-48 overflow-y-auto pr-2">
+                {latestNotice.content}
+              </p>
+            </div>
+
+            <button 
+              onClick={closePopup}
+              className="w-full py-3 bg-[#ffca28] hover:bg-[#ffe066] border-[2px] border-[#2d2d2d] shadow-[4px_4px_0_0_#2d2d2d] rounded-[var(--radius-wobbly)] font-patrick font-bold text-lg uppercase tracking-widest hover:-translate-y-1 hover:shadow-[6px_6px_0_0_#2d2d2d] transition-all active:translate-y-1 active:shadow-none"
+            >
+              Awesome!
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

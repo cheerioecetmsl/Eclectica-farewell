@@ -223,14 +223,12 @@ export default function IntroAnimation() {
                         }}
                         className="flex flex-col items-center transition-all duration-300"
                     >
-                        <img 
-                            src="/assets/cheerio logo.png" 
-                            alt="Cheerio Logo" 
-                            className="w-[150px] md:w-[350px] h-auto opacity-90"
-                        />
+                        <span className="font-kalam font-bold text-3xl md:text-7xl tracking-widest text-[#2d2d2d] uppercase">
+                            ECLECTICA
+                        </span>
                         <motion.p 
                             style={{ opacity: supportTextOpacity }}
-                            className="text-[10px] md:text-sm font-bold tracking-[1em] text-brown-secondary/40 uppercase mt-[-20px]"
+                            className="text-[10px] md:text-sm font-bold tracking-[1em] text-brown-secondary/40 uppercase mt-2"
                         >
                           The Final Archive
                         </motion.p>
@@ -245,11 +243,9 @@ export default function IntroAnimation() {
                     }}
                     className="absolute z-10 flex flex-col items-center justify-center pointer-events-none"
                 >
-                    <img 
-                        src="/assets/cheerio writing 1.png" 
-                        alt="Cheerio Writing" 
-                        className="w-[300px] md:w-[1000px] h-auto opacity-100"
-                    />
+                    <h2 className="font-kalam font-bold text-4xl md:text-8xl text-brown-primary tracking-wide text-center uppercase">
+                        FAREWELL 2026
+                    </h2>
                 </motion.div>
 
                 {/* Bottom Active Content (Appears as you scroll down) */}

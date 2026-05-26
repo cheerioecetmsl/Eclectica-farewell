@@ -27,8 +27,7 @@ export const getAssetSources = (publicId: string): ImageSource => {
       // Strips the transformation segment (e.g., /upload/v123/... or /upload/f_auto,q_auto/v123/...)
       // to return the raw high-quality uploaded image.
       const cleanedUrl = publicId.replace(/\/image\/upload\/(?:[a-z]_[^\/]+\/)+(v\d+\/)?/, "/image/upload/$1");
-      const webpUrl = cleanedUrl.replace(/\.[a-zA-Z0-9]+$/, ".webp");
-      return { webp: webpUrl, jpg: cleanedUrl };
+      return { webp: cleanedUrl, jpg: cleanedUrl };
     }
     return { webp: publicId, jpg: publicId };
   }
@@ -39,7 +38,7 @@ export const getAssetSources = (publicId: string): ImageSource => {
 
   // 2. For raw IDs, return the raw uploaded image directly.
   return { 
-    webp: `${BASE_URL}/image/upload/${publicId}.webp`, 
+    webp: `${BASE_URL}/image/upload/${publicId}`, 
     jpg: `${BASE_URL}/image/upload/${publicId}` 
   };
 };

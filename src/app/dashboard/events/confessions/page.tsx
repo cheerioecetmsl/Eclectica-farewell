@@ -47,6 +47,7 @@ export default function ConfessionsEvent() {
   const [mediaFile, setMediaFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [showSentPopup, setShowSentPopup] = useState(false);
 
   useEffect(() => {
     let unsubListeners: (() => void) | null = null;
@@ -59,7 +60,12 @@ export default function ConfessionsEvent() {
           const data = docSnap.data();
           setUserData(data);
           
-          if (data.year !== "4th Year") {
+          const isUserLegend = 
+            data.year?.toLowerCase().includes("4th year") || 
+            data.year?.toLowerCase().includes("legend") || 
+            data.category?.toLowerCase().includes("legend");
+
+          if (!isUserLegend) {
             setIsRejected(true);
             setLoading(false);
             return;
@@ -86,11 +92,10 @@ export default function ConfessionsEvent() {
   }, [router]);
 
   const setupListeners = (uid: string) => {
-    // 1. Listen for online 4th years
+    // 1. Listen for all 4th years
     const usersQuery = query(
       collection(db, "users"),
-      where("year", "==", "4th Year"),
-      where("isOnline", "==", true)
+      where("year", "==", "4th Year")
     );
     const unsubUsers = onSnapshot(usersQuery, (snap) => {
       const usersList = snap.docs.map(d => ({ uid: d.id, ...d.data() } as ConfessionUser));
@@ -138,7 +143,9 @@ export default function ConfessionsEvent() {
 
       await addDoc(collection(db, "event_confessions"), {
         recipientId: selectedRecipient.uid,
-        senderId: currentUser.uid, // Recorded secretly for moderation
+        recipientName: selectedRecipient.name,
+        senderId: currentUser.uid,
+        senderName: userData?.name || currentUser.displayName || "Unknown",
         text: messageText.trim(),
         mediaUrl,
         mediaType,
@@ -149,7 +156,7 @@ export default function ConfessionsEvent() {
       setSelectedRecipient(null);
       setMessageText("");
       setMediaFile(null);
-      alert("Confession sent anonymously!");
+      setShowSentPopup(true);
 
     } catch (err) {
       console.error(err);
@@ -168,6 +175,19 @@ export default function ConfessionsEvent() {
   }
 
   // --- REJECTION MODAL ---
+  const getRejectionMessage = () => {
+    if (!userData) return "You are not authorized.";
+    if (userData.year === "Faculty") {
+      return "Faculty members are not allowed in this student-only arena! 🎓";
+    }
+    let x = 1;
+    if (userData.year === "1st Year") x = 3;
+    else if (userData.year === "2nd Year") x = 2;
+    else if (userData.year === "3rd Year") x = 1;
+    
+    return `Ahem... You are ${x} ${x === 1 ? 'year' : 'years'} early, kiddo! 😜\n\nThis sacred ground is for 4th Years only. Your time will come!`;
+  };
+
   if (isRejected) {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#fdfbf7]/80 backdrop-blur-md">
@@ -178,9 +198,8 @@ export default function ConfessionsEvent() {
         >
           <div className="tack-decoration" />
           <h2 className="text-4xl font-bold font-kalam text-red-500 mb-6 -rotate-2">Hold up!</h2>
-          <p className="text-xl font-patrick text-[#2d2d2d] mb-8 leading-relaxed">
-            Ahem... You're 1 year early, kiddo! 😜<br/><br/>
-            This sacred ground is for 4th Years only. Your time will come!
+          <p className="text-xl font-patrick text-[#2d2d2d] mb-8 leading-relaxed whitespace-pre-line">
+            {getRejectionMessage()}
           </p>
           <button 
             onClick={() => router.push("/dashboard/events")}
@@ -438,6 +457,40 @@ export default function ConfessionsEvent() {
                   )}
                 </button>
               </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* --- SENT SUCCESS POPUP --- */}
+      <AnimatePresence>
+        {showSentPopup && (
+          <div className="fixed inset-0 z-[130] flex items-center justify-center p-4 bg-[#fdfbf7]/80 backdrop-blur-md">
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white border-[3px] border-[#2d2d2d] shadow-hard p-8 max-w-sm w-full text-center space-y-6 relative -rotate-1"
+            >
+              <div className="tape-decoration" />
+              
+              <div className="w-20 h-20 bg-[#4caf50] border-[3px] border-[#2d2d2d] rounded-full flex items-center justify-center text-white mx-auto shadow-[4px_4px_0_0_#2d2d2d] rotate-3">
+                <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3.5} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+
+              <div className="space-y-2">
+                <h3 className="text-3xl font-bold font-kalam text-[#2d2d2d]">Confession Sealed!</h3>
+                <p className="font-patrick text-xl text-[#2d2d2d]/80 leading-relaxed">
+                  Your message has been safely encrypted and sent into their anonymous vault. 🤫🔒
+                </p>
+              </div>
+
+              <button 
+                onClick={() => setShowSentPopup(false)}
+                className="w-full py-3 bg-[#ffca28] hover:bg-[#ffe066] border-[2px] border-[#2d2d2d] shadow-[4px_4px_0_0_#2d2d2d] rounded-[var(--radius-wobbly)] font-patrick font-bold text-lg uppercase tracking-widest hover:-translate-y-1 hover:shadow-[6px_6px_0_0_#2d2d2d] transition-all active:translate-y-1 active:shadow-none"
+              >
+                Awesome!
+              </button>
             </motion.div>
           </div>
         )}
