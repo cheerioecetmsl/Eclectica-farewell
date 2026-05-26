@@ -88,7 +88,7 @@ export const Navbar = () => {
 
   return (
     <nav 
-      className={`fixed top-0 left-0 w-full z-[110] px-8 py-6 flex justify-between items-center transition-all duration-700 ${
+      className={`fixed top-0 left-0 w-full z-[110] px-4 md:px-8 py-4 md:py-6 flex justify-between items-center transition-all duration-700 ${
         isHome 
           ? (isScrolled ? "bg-[#fdfbf7]/90 backdrop-blur-xl border-b-[3px] border-[#2d2d2d] shadow-hard-sm" : "bg-transparent")
           : "theme-cinematic-navbar shadow-md"
@@ -97,20 +97,20 @@ export const Navbar = () => {
     >
       <Link href="/" prefetch={false} className="flex items-center gap-4 group">
         <span 
-          className={`text-xl md:text-2xl font-bold tracking-widest pl-2 transition-all ${isHome ? 'font-kalam text-[#2d2d2d]' : 'serif'}`}
+          className={`text-sm sm:text-base md:text-2xl font-bold tracking-wider md:tracking-widest pl-1 md:pl-2 transition-all ${isHome ? 'font-kalam text-[#2d2d2d]' : 'serif'}`}
           style={!isHome ? { color: 'var(--color-gold-primary)' } : {}}
         >
           ECLECTICA <span style={!isHome ? { color: 'var(--color-gold-soft)' } : {}}>FAREWELL</span>
         </span>
       </Link>
-
+ 
       <div className="flex items-center gap-4">
         {!loading && (
           user ? (
             <Link 
               href="/#dashboard"
               prefetch={false}
-              className={isHome ? "hand-card-yellow px-6 py-2.5 font-bold uppercase tracking-widest font-patrick hover:-translate-y-1 transition-transform rotate-1" : "theme-cinematic-btn-primary px-6 py-2 rounded-full text-[10px] md:text-sm font-bold uppercase tracking-wider"}
+              className={isHome ? "hand-card-yellow px-4 md:px-6 py-2 md:py-2.5 text-xs md:text-base font-bold uppercase tracking-wide md:tracking-widest font-patrick hover:-translate-y-1 transition-transform rotate-1" : "theme-cinematic-btn-primary px-6 py-2 rounded-full text-[10px] md:text-sm font-bold uppercase tracking-wider"}
             >
               Dashboard ➔
             </Link>
@@ -118,7 +118,7 @@ export const Navbar = () => {
             <button 
               onClick={handleSignIn}
               disabled={isSigningIn}
-              className={isHome ? "hand-card-yellow px-6 py-2.5 border-[3px] border-[#2d2d2d] shadow-hard font-bold uppercase tracking-widest font-patrick hover:-translate-y-1 transition-transform rotate-2 disabled:opacity-50 flex items-center gap-2" : "theme-cinematic-btn-secondary px-6 py-2 rounded-full text-[10px] md:text-sm font-bold uppercase tracking-wider disabled:opacity-50"}
+              className={isHome ? "hand-card-yellow px-4 md:px-6 py-2 md:py-2.5 text-xs md:text-base border-[3px] border-[#2d2d2d] shadow-hard font-bold uppercase tracking-wide md:tracking-widest font-patrick hover:-translate-y-1 transition-transform rotate-2 disabled:opacity-50 flex items-center gap-2" : "theme-cinematic-btn-secondary px-6 py-2 rounded-full text-[10px] md:text-sm font-bold uppercase tracking-wider disabled:opacity-50"}
             >
               {isSigningIn ? "Wait..." : "Sign the Register ✒"}
             </button>

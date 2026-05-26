@@ -318,7 +318,7 @@ const HeroCollage = React.forwardRef<HTMLDivElement, HeroCollageProps>(
         <section
           ref={ref}
           className={cn(
-            'relative w-full bg-[#fdfbf7] text-[#2d2d2d] font-patrick py-12 md:py-16 overflow-hidden',
+            'relative w-full bg-[#fdfbf7] text-[#2d2d2d] font-patrick pt-28 pb-12 md:py-16 overflow-hidden',
             className
           )}
           {...props}
