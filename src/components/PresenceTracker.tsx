@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { auth, db } from "@/lib/firebase";
-import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { doc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 
 export function PresenceTracker() {
@@ -19,24 +19,29 @@ export function PresenceTracker() {
         
         // Initial mark as online
         const setOnline = () => {
-          setDoc(userRef, {
+          updateDoc(userRef, {
             isOnline: true,
             presence: 'online',
             onlineSince: serverTimestamp(),
             lastSeen: serverTimestamp()
-          }, { merge: true })
+          })
           .then(() => console.log("PresenceTracker: Successfully marked ONLINE"))
-          .catch(err => console.error("Presence Error (Online):", err));
+          .catch(err => {
+            // Silently ignore errors during onboarding when doc doesn't exist yet
+            console.log("PresenceTracker: User profile document not yet initialized (normal during onboarding).");
+          });
         };
 
         const setOffline = () => {
-          setDoc(userRef, {
+          updateDoc(userRef, {
             isOnline: false,
             presence: 'offline',
             lastSeen: serverTimestamp()
-          }, { merge: true })
+          })
           .then(() => console.log("PresenceTracker: Successfully marked OFFLINE"))
-          .catch(err => console.error("Presence Error (Offline):", err));
+          .catch(err => {
+            console.log("PresenceTracker: User profile document not yet initialized.");
+          });
         };
 
         // Mark as online on startup
@@ -45,9 +50,11 @@ export function PresenceTracker() {
         // Heartbeat every 30 seconds to keep lastSeen fresh
         const heartbeat = setInterval(() => {
           if (document.visibilityState === 'visible') {
-            setDoc(userRef, {
+            updateDoc(userRef, {
               lastSeen: serverTimestamp()
-            }, { merge: true }).catch(err => console.error("Heartbeat Error:", err));
+            }).catch(err => {
+              // Ignore heartbeat errors during onboarding
+            });
           }
         }, 30000);
 
