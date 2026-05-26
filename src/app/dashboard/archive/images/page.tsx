@@ -18,6 +18,7 @@ interface ArchivePhoto {
   event?: string;
   createdAt?: string | number | Date;
   uploadedBy?: string;
+  isPublic?: boolean;
 }
 
 export default function ImageArchive() {

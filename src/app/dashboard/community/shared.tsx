@@ -44,7 +44,7 @@ export function MemberCard({ member, onClick }: { member: Member; onClick: () =>
           <CheerioImage
             src={member.photoURL}
             baseId={member.photoBaseId}
-            variant="archive"
+            variant="gallery"
             alt={member.name}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
@@ -109,7 +109,7 @@ export function MemberModal({ member, onClose }: { member: Member; onClose: () =
             <CheerioImage
               src={member.photoURL}
               baseId={member.photoBaseId}
-              variant="archive"
+              variant="gallery"
               alt={member.name}
               className="w-full h-full object-cover"
             />
