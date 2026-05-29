@@ -21,6 +21,8 @@ interface Poll {
   type: "single" | "multiple";
   status: "open" | "closed" | "results_declared";
   options: PollOption[];
+  mediaUrl?: string;
+  mediaType?: "image" | "video" | null;
   createdAt: any;
 }
 
@@ -208,6 +210,18 @@ export default function ExitPollsStorehouse() {
                 {poll.description && (
                   <p className="font-patrick text-xl text-[#2d2d2d]/80 mt-2">{poll.description}</p>
                 )}
+                {poll.mediaUrl && (
+                  <div 
+                    onClick={(e) => e.stopPropagation()} 
+                    className="w-full max-h-64 md:max-h-80 border-[2px] border-[#2d2d2d] rounded-xl overflow-hidden bg-black/5 mt-4 relative z-0"
+                  >
+                    {poll.mediaType === "image" ? (
+                      <img src={poll.mediaUrl} alt={poll.title} className="w-full h-full object-contain max-h-64 md:max-h-80 bg-zinc-50 mx-auto" />
+                    ) : (
+                      <video src={poll.mediaUrl} controls className="w-full h-full object-contain max-h-64 md:max-h-80 bg-black mx-auto" />
+                    )}
+                  </div>
+                )}
 
                 {/* Show User's Choice if voted but results aren't out yet */}
                 {hasVoted && !showResults && (
@@ -285,6 +299,15 @@ export default function ExitPollsStorehouse() {
               <h2 className="text-3xl md:text-4xl font-bold font-kalam text-[#2d2d2d] leading-tight">
                 {activePoll.title}
               </h2>
+              {activePoll.mediaUrl && (
+                <div className="w-full max-h-64 md:max-h-80 border-[2px] border-[#2d2d2d] rounded-xl overflow-hidden bg-black/5 mt-4 relative z-0">
+                  {activePoll.mediaType === "image" ? (
+                    <img src={activePoll.mediaUrl} alt={activePoll.title} className="w-full h-full object-contain max-h-64 md:max-h-80 bg-zinc-50 mx-auto" />
+                  ) : (
+                    <video src={activePoll.mediaUrl} controls className="w-full h-full object-contain max-h-64 md:max-h-80 bg-black mx-auto" />
+                  )}
+                </div>
+              )}
             </div>
 
             <div className="space-y-4">
