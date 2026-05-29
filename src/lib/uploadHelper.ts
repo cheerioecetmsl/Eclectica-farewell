@@ -9,13 +9,17 @@ export interface UploadResult {
   url: string;
 }
 
+let cachedConfig: any = null;
+
 /**
  * Fetch Cloudinary config
  */
 async function getCloudinaryConfig() {
+  if (cachedConfig) return cachedConfig;
   const res = await fetch("/api/config");
   if (!res.ok) throw new Error("Failed to fetch Cloudinary config");
-  return res.json();
+  cachedConfig = await res.json();
+  return cachedConfig;
 }
 
 /**

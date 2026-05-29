@@ -121,6 +121,7 @@ export default function ImageUpload() {
   const uploadType = "memory";
   const [userYear, setUserYear] = useState<string>("");
   const [userCategory, setUserCategory] = useState<string>("");
+  const [userName, setUserName] = useState<string>("");
 
   const fetchUser = async (uid: string) => {
     try {
@@ -131,6 +132,7 @@ export default function ImageUpload() {
         setStrikes(data.strikes || 0);
         setUserYear(data.year || "");
         setUserCategory(data.category || "");
+        setUserName(data.name || data.displayName || "");
       }
     } catch (err) {
       console.error("Failed to fetch user data", err);
@@ -154,7 +156,7 @@ export default function ImageUpload() {
           url: uploadedUrl,
           type: "image",
           userId: auth.currentUser!.uid,
-          userName: auth.currentUser!.displayName,
+          userName: userName || auth.currentUser!.displayName || "Unknown",
           createdAt: new Date().toISOString(),
           tag: "General",
           isEntry: false,

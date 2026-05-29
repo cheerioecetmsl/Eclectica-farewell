@@ -8,6 +8,7 @@ import {
   Camera, SwitchCamera, AlertCircle
 } from "lucide-react";
 import Link from "next/link";
+import { uploadGenericFile } from "@/lib/uploadHelper";
 
 export default function VideoUpload() {
   const [files, setFiles] = useState<File[]>([]);
@@ -78,17 +79,6 @@ export default function VideoUpload() {
     if (!vids.length) return;
     
     for (const file of vids) {
-      if (file.size > 100 * 1024 * 1024) {
-        alert(`File ${file.name} is larger than 100MB and cannot be uploaded.`);
-        continue;
-      }
-
-      const duration = await getVideoDuration(file);
-      if (duration > 600) {
-        alert(`File ${file.name} is longer than 10 minutes and cannot be uploaded. Please cut it into pieces.`);
-        continue;
-      }
-
       setFiles(p => [...p, file]);
       setPreviews(p => [...p, URL.createObjectURL(file)]);
     }
@@ -235,34 +225,23 @@ export default function VideoUpload() {
     setUploading(true);
     setUploadedCount(0);
     
-    const CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || "dyvobdjp5";
-
     try {
-      await Promise.all(files.map(async file => {
-        const form = new FormData();
-        form.append("file", file);
-        form.append("upload_preset", process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "Cheerio-26");
-        form.append("folder", "Cheerio/Archives/Videos");
-
-        const res = await fetch(
-          `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/video/upload`,
-          { method: "POST", body: form }
-        );
-
-        if (!res.ok) {
-          const errorData = await res.json().catch(() => ({}));
-          throw new Error(`Upload failed: ${errorData.error?.message || res.statusText}`);
-        }
-
-        const json = await res.json();
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const { url: uploadedUrl } = await uploadGenericFile(file, "Cheerio/Archives/Videos");
+        
         await addDoc(collection(db, "archives"), {
-          url: json.secure_url, type: "video",
+          url: uploadedUrl,
+          type: "video",
           userId: auth.currentUser!.uid,
-          userName: auth.currentUser!.displayName,
-          createdAt: new Date().toISOString(), tag: "General",
+          userName: auth.currentUser!.displayName || "Unknown",
+          createdAt: new Date().toISOString(),
+          tag: "General",
         });
-        setUploadedCount(p => p + 1);
-      }));
+        
+        setUploadedCount(i + 1);
+      }
+
       await updateDoc(doc(db, "users", auth.currentUser.uid), {
         xp: increment(25 * files.length),
       });
