@@ -1,7 +1,5 @@
-import { storage } from "./firebase";
-// We no longer use firebase/storage directly for uploads, everything goes to Cloudinary.
-
-// We no longer use firebase/storage directly for uploads, everything goes to Cloudinary.
+const CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+const UPLOAD_PRESET = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
 
 export interface UploadResult {
   baseId: string;
@@ -9,30 +7,17 @@ export interface UploadResult {
   url: string;
 }
 
-let cachedConfig: any = null;
-
 /**
- * Fetch Cloudinary config
- */
-async function getCloudinaryConfig() {
-  if (cachedConfig) return cachedConfig;
-  const res = await fetch("/api/config");
-  if (!res.ok) throw new Error("Failed to fetch Cloudinary config");
-  cachedConfig = await res.json();
-  return cachedConfig;
-}
-
-/**
- * Orchestrates the processing and uploading to Cloudinary natively.
+ * Orchestrates the processing and uploading of Original, WebP, and JPG variants.
+ * Locally processed to ensure NO Cloudinary transformation credits are used.
  */
 export async function uploadProcessedImage(
   file: File | Blob,
   subfolder: string = "Images",
   onProgress?: (progress: number) => void
 ): Promise<UploadResult> {
-  const config = await getCloudinaryConfig();
-  if (!config.cloudName || !config.uploadPreset) {
-    throw new Error("Cloudinary credentials missing from /api/config");
+  if (!CLOUD_NAME || !UPLOAD_PRESET) {
+    throw new Error("Cloudinary credentials missing in environment");
   }
 
   const baseId = `img_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
@@ -42,9 +27,11 @@ export async function uploadProcessedImage(
 
   console.log(`[UploadHelper] Archiving variants for ${baseId} to ${folderPath}`);
 
+  // Upload the original file directly as a raw image to avoid transformations.
+  // This prevents browser memory issues during bulk uploads and supports all native formats (including HEIC).
   const formData = new FormData();
   formData.append("file", file);
-  formData.append("upload_preset", config.uploadPreset);
+  formData.append("upload_preset", UPLOAD_PRESET);
   formData.append("public_id", baseId);
   formData.append("folder", folderPath);
 
@@ -66,7 +53,7 @@ export async function uploadProcessedImage(
     });
 
     xhr.addEventListener("error", () => reject(new Error("Network error during upload")));
-    xhr.open("POST", `https://api.cloudinary.com/v1_1/${config.cloudName}/image/upload`);
+    xhr.open("POST", `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`);
     xhr.send(formData);
   });
 
@@ -74,13 +61,13 @@ export async function uploadProcessedImage(
 
   return { 
     baseId: fullBaseId, 
-    version: result.version || 1, 
-    url: `https://res.cloudinary.com/${config.cloudName}/image/upload/${fullBaseId}`
+    version: result.version, 
+    url: `https://res.cloudinary.com/${CLOUD_NAME}/image/upload/${fullBaseId}`
   };
 }
 
 /**
- * Sequentially uploads a batch of files.
+ * Sequentially uploads a batch of files to avoid browser throttling and Cloudinary failures.
  */
 export async function uploadBatch(
   files: FileList | File[],
@@ -123,9 +110,8 @@ export async function uploadGenericFile(
   subfolder: string = "Archives",
   onProgress?: (progress: number) => void
 ): Promise<{ url: string; publicId: string }> {
-  const config = await getCloudinaryConfig();
-  if (!config.cloudName || !config.uploadPreset) {
-    throw new Error("Cloudinary credentials missing from /api/config");
+  if (!CLOUD_NAME || !UPLOAD_PRESET) {
+    throw new Error("Cloudinary credentials missing in environment");
   }
 
   // Determine resource type
@@ -133,12 +119,12 @@ export async function uploadGenericFile(
   if (file.type.startsWith("video/")) resourceType = "video";
   if (file.type.startsWith("image/")) resourceType = "image";
 
-  const API_URL = `https://api.cloudinary.com/v1_1/${config.cloudName}/${resourceType}/upload`;
+  const API_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/${resourceType}/upload`;
   const folderPath = subfolder.startsWith("Cheerio/") ? subfolder : `Cheerio/Archives/${subfolder}`;
 
   const formData = new FormData();
   formData.append("file", file);
-  formData.append("upload_preset", config.uploadPreset);
+  formData.append("upload_preset", UPLOAD_PRESET);
   formData.append("folder", folderPath);
 
   const xhr = new XMLHttpRequest();
@@ -165,6 +151,6 @@ export async function uploadGenericFile(
 }
 
 /**
- * Profile photo upload.
+ * Profile photo upload (reuses the variant pipeline for consistency).
  */
 export const uploadProfilePhoto = uploadProcessedImage;
