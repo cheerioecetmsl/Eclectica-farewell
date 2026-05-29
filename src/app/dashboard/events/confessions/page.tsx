@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { auth, db } from "@/lib/firebase";
 import { collection, query, where, onSnapshot, addDoc, serverTimestamp, doc, getDoc, orderBy } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
-import { uploadGenericFile } from "@/lib/uploadHelper";
+import { uploadGenericFile, uploadProcessedImage } from "@/lib/uploadHelper";
 import { Loader2, ArrowLeft, Send, X, Image as ImageIcon, Video, User, MessageCircle, RefreshCw } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -136,9 +136,15 @@ export default function ConfessionsEvent() {
       let mediaType = null;
 
       if (mediaFile) {
-        const result = await uploadGenericFile(mediaFile, "Cheerio/Events/Confessions");
-        mediaUrl = result.url;
-        mediaType = mediaFile.type.startsWith("video/") ? "video" : "image";
+        if (mediaFile.type.startsWith("image/")) {
+          const result = await uploadProcessedImage(mediaFile, "Cheerio/Events/Confessions");
+          mediaUrl = result.url;
+          mediaType = "image";
+        } else {
+          const result = await uploadGenericFile(mediaFile, "Cheerio/Events/Confessions");
+          mediaUrl = result.url;
+          mediaType = mediaFile.type.startsWith("video/") ? "video" : "image";
+        }
       }
 
       await addDoc(collection(db, "event_confessions"), {
@@ -158,9 +164,9 @@ export default function ConfessionsEvent() {
       setMediaFile(null);
       setShowSentPopup(true);
 
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      alert("Failed to send confession.");
+      alert(`Failed to send confession: ${err.message || err}`);
     } finally {
       setIsUploading(false);
     }

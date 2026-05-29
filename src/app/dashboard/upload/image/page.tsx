@@ -165,6 +165,11 @@ export default function ImageUpload() {
         });
         
         setUploadedCount(i + 1);
+        
+        // Cooldown delay (600ms) to let socket rest and prevent browser rate limiting / throttling
+        if (i < files.length - 1) {
+          await new Promise((resolve) => setTimeout(resolve, 600));
+        }
       }
 
       await updateDoc(doc(db, "users", auth.currentUser.uid), {
@@ -172,9 +177,9 @@ export default function ImageUpload() {
         photoCount: increment(files.length),
       });
       setSuccess(true);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      alert("Upload failed. Please try again.");
+      alert(`Upload failed: ${err.message || err}`);
     } finally {
       setUploading(false);
     }
